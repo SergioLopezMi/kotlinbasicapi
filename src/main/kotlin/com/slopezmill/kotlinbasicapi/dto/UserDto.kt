@@ -1,3 +1,5 @@
 package com.slopezmill.kotlinbasicapi.dto
 
-class UserDto(var id: Long, var name: String, var surname: String)
+import com.slopezmill.kotlinbasicapi.domain.Job
+
+class UserDto(var id: Long, var name: String, var surname: String, var professionalResume: ArrayList<Job> = arrayListOf())
