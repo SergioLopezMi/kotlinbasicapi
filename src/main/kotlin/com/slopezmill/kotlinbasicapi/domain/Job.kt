@@ -7,10 +7,16 @@ import java.io.Serializable
 import java.time.LocalDateTime
 
 @Document("Job")
-data class Job(@Id var id: Long,
-               @Field("name") var name: String,
-               @Field("initDate") var initDate: LocalDateTime,
-               @Field("isEnded") var isEnded: Boolean,
-               @Field("endDate") var endDate: LocalDateTime?) : Serializable {
-    constructor() : this(-1, "", LocalDateTime.now(), false, null)
+data class Job(
+        @Id
+        var id: String,
+        @Field("name")
+        var name: String,
+        @Field("initDate")
+        var initDate: LocalDateTime,
+        @Field("isEnded")
+        var isEnded: Boolean,
+        @Field("endDate")
+        var endDate: LocalDateTime?) : Serializable {
+    constructor() : this("", "", LocalDateTime.now(), false, null)
 }
