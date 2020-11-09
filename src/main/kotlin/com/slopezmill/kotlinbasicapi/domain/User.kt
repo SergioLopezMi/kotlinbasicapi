@@ -1,3 +1,10 @@
 package com.slopezmill.kotlinbasicapi.domain
 
-class User(var id: Long? = null, var name: String = "", var surname: String = "", var professionalResume: ArrayList<Job> = arrayListOf())
+import java.io.Serializable
+
+data class User(var id: Long,
+                var name: String,
+                var surname: String,
+                var professionalResume: ArrayList<Job>) : Serializable {
+    constructor() : this(-1, "", "", arrayListOf())
+}
