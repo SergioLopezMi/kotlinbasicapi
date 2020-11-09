@@ -1,10 +1,11 @@
 package com.slopezmill.kotlinbasicapi.controller
 
 
-import com.slopezmill.kotlinbasicapi.domain.Job
 import com.slopezmill.kotlinbasicapi.domain.User
 import com.slopezmill.kotlinbasicapi.dto.JobDto
 import com.slopezmill.kotlinbasicapi.dto.UserDto
+import com.slopezmill.kotlinbasicapi.mapper.JobMapper
+import com.slopezmill.kotlinbasicapi.mapper.UserMapper
 import com.slopezmill.kotlinbasicapi.service.UserService
 import org.apache.logging.log4j.LogManager
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,11 +13,13 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import javax.jws.soap.SOAPBinding
 
 @RestController
 @RequestMapping("/user")
-class UserControllerImpl(@Autowired userService: UserService) : UserController {
+class UserControllerImpl @Autowired constructor(
+        private val userService: UserService,
+        private val userMapper: UserMapper,
+        private val jobMapper: JobMapper) : UserController {
 
     private val LOG = LogManager.getLogger()
     private var listUser: ArrayList<User> = userService.addUser()
@@ -37,11 +40,7 @@ class UserControllerImpl(@Autowired userService: UserService) : UserController {
     override fun addUser(@RequestBody userDto: UserDto): ResponseEntity<User> {
         LOG.info("New user added")
 
-        val user = User()
-
-        user.id = userDto.id
-        user.name = userDto.name
-        user.surname = userDto.surname
+        val user = userMapper.map(userDto)
 
         listUser.add(user)
         return ResponseEntity(user, HttpStatus.OK)
@@ -51,13 +50,7 @@ class UserControllerImpl(@Autowired userService: UserService) : UserController {
     override fun addJob(id: Int, jobDto: JobDto): ResponseEntity<User> {
         LOG.info("Update professional resume user with id $id")
 
-        val job = Job()
-
-        job.id = jobDto.id
-        job.name = jobDto.name
-        job.initDate = jobDto.initDate
-        job.isEnded = jobDto.isEnded
-        job.endDate = jobDto.endDate
+        val job = jobMapper.map(jobDto)
 
         listUser[(id - 1)].professionalResume.add(job)
 
@@ -68,15 +61,10 @@ class UserControllerImpl(@Autowired userService: UserService) : UserController {
     override fun updateUser(id: Int, userDto: UserDto): ResponseEntity<User> {
         LOG.info("Update user with id $id")
 
-        var user = User()
-
         if (!userDto.name.isNullOrEmpty() && !userDto.surname.isNullOrEmpty()) {
-            user = listUser[id - 1]
-            user.name = userDto.name
-            user.surname = userDto.surname
+            val user = userMapper.map(userDto)
             listUser[id - 1] = user
         }
-
         return ResponseEntity(listUser.elementAt((id - 1)), HttpStatus.OK)
     }
 
@@ -84,18 +72,9 @@ class UserControllerImpl(@Autowired userService: UserService) : UserController {
     override fun updateUserJob(userId: Int, jobDto: JobDto): ResponseEntity<User> {
         LOG.info("Update user job with user id $userId")
 
-        var user: User
-        var job = Job()
-
         if (jobDto.id != null && !jobDto.name.isNullOrEmpty() && jobDto.initDate != null && jobDto.isEnded != null) {
-            user = listUser[userId - 1]
-            job = user.professionalResume[jobDto.id.toInt() - 1]
-
-            job.name = jobDto.name
-            job.initDate = jobDto.initDate
-            job.isEnded = jobDto.isEnded
-            job.endDate = jobDto.endDate
-
+            val user = listUser[userId - 1]
+            val job = jobMapper.map(jobDto)
             user.professionalResume[jobDto.id.toInt() - 1] = job
         }
         return ResponseEntity(listUser[userId - 1], HttpStatus.OK)
@@ -106,7 +85,7 @@ class UserControllerImpl(@Autowired userService: UserService) : UserController {
         LOG.info("Delete user with id $id")
 
         for (user in listUser) {
-            if(user.id == id.toLong()){
+            if (user.id == id.toLong()) {
                 return listUser.remove(user)
             }
         }
@@ -118,15 +97,15 @@ class UserControllerImpl(@Autowired userService: UserService) : UserController {
     override fun deleteUserJob(@PathVariable userId: Int, @RequestBody jobDto: JobDto): Boolean {
         LOG.info(("Delete user's id $userId job ${jobDto.id}"))
 
-        for(user in listUser){
-            if(user.id == userId.toLong()){
-                for(job in user.professionalResume){
-                    if(job.id == jobDto.id){
+        for (user in listUser) {
+            if (user.id == userId.toLong()) {
+                for (job in user.professionalResume) {
+                    if (job.id == jobDto.id) {
                         return user.professionalResume.remove(job)
                     }
                 }
             }
         }
         return false
-    } //TODO: Put y Delete para user y job
+    }
 }
